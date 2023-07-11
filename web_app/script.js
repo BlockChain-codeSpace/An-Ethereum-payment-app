@@ -309,15 +309,13 @@ async function getLastActive(user) {
 // The person you owe money is passed as 'creditor'
 // The amount you owe them is passed as 'amount'
 async function add_IOU(creditor, amount) {
-  BlockchainSplitwise = new ethers.Contract(contractAddress, abi, provider.getSigner(defaultAccount));
-  await BlockchainSplitwise.add_IOU(creditor, amount)
+  // BlockchainSplitwise = new ethers.Contract(contractAddress, abi, provider.getSigner(defaultAccount));
+  await BlockchainSplitwise.connect(provider.getSigner(defaultAccount)).add_IOU(creditor, amount)
     .then(() => {
       console.log("Send IOU successfully")
-      return true
     })
     .catch((err) => {
       console.error(err.error.message.split("reason string ")[1].replace(/'/g, ""));
-      return false
     })
 }
 
@@ -432,8 +430,8 @@ getUsers().then((response) => {
 // It passes the values from the two inputs above
 $("#addiou").click(function () {
   defaultAccount = $("#myaccount").val(); //sets the default account
-  add_IOU($("#creditor").val(), $("#amount").val()).then((res) => {
-    if (res) window.location.reload(false); // refreshes the page after add_IOU returns and the promise is unwrapped
+  add_IOU($("#creditor").val(), $("#amount").val()).then(() => {
+    window.location.reload(false); // refreshes the page after add_IOU returns and the promise is unwrapped
   })
 });
 
