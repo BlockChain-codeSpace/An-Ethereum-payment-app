@@ -1,13 +1,27 @@
-# Sample Hardhat Project
+## Stanford University, CS251 Project 3: An Ethereum payment app
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+Install package
 
-Try running some of the following tasks:
-
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.js
 ```
+yarn install
+```
+
+Run a local Ethereum network node
+
+```
+yarn hardhat node
+```
+
+Deploy token smart contract on local network
+
+```
+yarn hardhat run scripts/deploy.js --network localhost
+```
+
+
+
+Copy your abi, smart contract's address (You can find them in folder `artifacts/contracts/contract_name.sol`)
+
+Run `web_app/index.html`
+
+![demo](demo.png)

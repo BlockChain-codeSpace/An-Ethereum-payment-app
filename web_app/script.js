@@ -246,7 +246,7 @@ var contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"; // FIXME: fi
 var BlockchainSplitwise = new ethers.Contract(contractAddress, abi, provider.getSigner());
 async () => {
   if (await provider.getCode(contractAddress) === "0x") {
-    console.log("Chua được deploy");
+    console.log("Error!!!");
   } else {
     console.log("Deployed!!!!");
   }

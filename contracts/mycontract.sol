@@ -7,8 +7,8 @@ contract BlockchainSplitwise {
     mapping(address => uint32) public unique_users;
 
     // For development
-    uint32[] public parents;
-    bool[] public visited;
+    uint32[] private parents;
+    bool[] private visited;
 
     event visitedNode(address _address);
     event logMessage(string message);
@@ -74,7 +74,7 @@ contract BlockchainSplitwise {
 
     function add_IOU(address creditor, uint32 amount) public {
         require(msg.sender != creditor, "You can not owe yourself money");
-        // Đầu tiên phải phân tích xem nó có thể tạo vòng hay không
+        // First of all, check if this edge could create cycle or not
 
         // Add debtor into list users
         if (unique_users[msg.sender] == 0) {
@@ -91,50 +91,53 @@ contract BlockchainSplitwise {
             visited.push(false);
         }
 
-        // Nếu đang nợ mà nợ thêm thì không tạo ra vòng
+        // Add more IOU
         if (balances[msg.sender][creditor] != 0) {
             balances[msg.sender][creditor] += amount;
             return;
         }
-        // Nếu muốn xóa nợ -> có thể xóa hoặc chưa xóa hết
+        // If you want to clear your debt -> you can delete it or not delete it all
         if (balances[creditor][msg.sender] >= amount) {
             balances[creditor][msg.sender] -= amount;
             return;
         }
-        // Chắc chắn sẽ tạo cạnh mới
+        // Definitely create a new edge
         balances[msg.sender][creditor] +=
             amount -
             balances[creditor][msg.sender];
         balances[creditor][msg.sender] = 0;
-        // Bắt đầu tìm kiếm vòng
-        int32 cycle_end = -1;
-        cycle_end = find_cycle(creditor);
-        emit logCycleEnd(cycle_end);
-        if (cycle_end != -1) {
-            emit logMessage("Found the cycle!!!!!");
-            // Find min balance
-            uint32 positionSender = unique_users[msg.sender] - 1;
-            uint32 _cycle_end = uint32(cycle_end);
-            uint32 minBalance = balances[users[_cycle_end]][msg.sender];
-            while (_cycle_end != positionSender) {
-                uint32 indexBalance = uint32(
-                    balances[users[parents[_cycle_end]]][users[_cycle_end]]
-                );
-                if (indexBalance < minBalance) {
-                    minBalance = indexBalance;
+        // Start searching for cycles
+        int32 cycle_end = 0;
+        // It could have many cycles
+        while (cycle_end != -1) {
+            cycle_end = find_cycle(creditor);
+            emit logCycleEnd(cycle_end);
+            if (cycle_end != -1) {
+                emit logMessage("Found the cycle!!!!!");
+                // Find min balance
+                uint32 positionSender = unique_users[msg.sender] - 1;
+                uint32 _cycle_end = uint32(cycle_end);
+                uint32 minBalance = balances[users[_cycle_end]][msg.sender];
+                while (_cycle_end != positionSender) {
+                    uint32 indexBalance = uint32(
+                        balances[users[parents[_cycle_end]]][users[_cycle_end]]
+                    );
+                    if (indexBalance < minBalance) {
+                        minBalance = indexBalance;
+                    }
+                    _cycle_end = parents[_cycle_end];
                 }
-                _cycle_end = parents[_cycle_end];
-            }
-            emit logMin(minBalance);
-            _cycle_end = uint32(cycle_end);
-            while (_cycle_end != positionSender) {
-                balances[users[parents[_cycle_end]]][
-                    users[_cycle_end]
-                ] -= minBalance;
-                _cycle_end = parents[_cycle_end];
-            }
-            _cycle_end = uint32(cycle_end);
-            balances[users[_cycle_end]][msg.sender] -= minBalance;
-        } else emit logMessage("Not Found any cycle!!!!");
+                emit logMin(minBalance);
+                _cycle_end = uint32(cycle_end);
+                while (_cycle_end != positionSender) {
+                    balances[users[parents[_cycle_end]]][
+                        users[_cycle_end]
+                    ] -= minBalance;
+                    _cycle_end = parents[_cycle_end];
+                }
+                _cycle_end = uint32(cycle_end);
+                balances[users[_cycle_end]][msg.sender] -= minBalance;
+            } else emit logMessage("Not Found any cycle!!!!");
+        }
     }
 }
