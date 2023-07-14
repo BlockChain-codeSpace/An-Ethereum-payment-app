@@ -2,8 +2,8 @@
 pragma solidity ^0.8.0;
 
 contract BlockchainSplitwise {
-    mapping(address => mapping(address => uint32)) public balances;
-    address[] public users;
+    mapping(address => mapping(address => uint32)) public balances; // balances[debtor][creditor] = amount
+    address[] public users; // List users joined this app
     mapping(address => uint32) public unique_users;
 
     // For development
@@ -96,11 +96,13 @@ contract BlockchainSplitwise {
             balances[msg.sender][creditor] += amount;
             return;
         }
+
         // If you want to clear your debt -> you can delete it or not delete it all
         if (balances[creditor][msg.sender] >= amount) {
             balances[creditor][msg.sender] -= amount;
             return;
         }
+
         // Definitely create a new edge
         balances[msg.sender][creditor] +=
             amount -
